@@ -1,13 +1,23 @@
 ### Read and adjust data set
-homedir<-'/Users/Huascar/RR/data/'
-file<-'activity.csv'
-activity<-read.csv(paste0(homedir, file))
+temp <- tempfile()
+download.file(
+    "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip",
+    temp, method="curl")
+activity <- read.csv(unz(temp, "activity.csv"))
+unlink(temp)
 
 ### Find out how NA values are distributed
 
 nadistrib<-table(activity$date, is.na(activity$steps))
 
 nadistrib
+
+### Create a new variable with date/time format:
+
+activity$datetime<-as.POSIXct(
+    strptime(
+        paste(activity$date, formatC(activity$interval, width=4, flag="0")
+              ), "%Y-%m-%d %H%M"))
 
 ### NA is an "all day" thing and there are no missing values in a day with
 ### measurements

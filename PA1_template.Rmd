@@ -3,10 +3,104 @@
 
 ## Loading and preprocessing the data
 
+The data for this assignment can be found at the following url as a zip file containing the **activity.csv** file in csv file format:
+
+- Url: *https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip*
+
+- File: *activity.csv* 
+
+The variables included in this dataset are:
+
+- **steps**: Number of steps taking in a 5-minute interval (missing
+    values are coded as 'NA')
+
+- **date**: The date on which the measurement was taken in YYYY-MM-DD
+    format
+
+- **interval**: Identifier for the 5-minute interval in which
+    measurement was taken
+    
+
+### Loading the data
+The following code will be used to download and read the data into the `activity`
+data frame:
+
+```{r}
+temp <- tempfile()
+download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", temp, method="curl")
+activity <- read.csv(unz(temp, "activity.csv"))
+unlink(temp)
+```
+
+### Analyzing missing values
+
+Exploring the data loaded with the `summary` function:
+
+```{r}
+summary(activity)
+```
+
+We can see that only the **steps** variable has missing values. The other variables are complete.
+
+Let's analyze how the **steps** variable missing data is distributed by date: 
+
+```{r}
+table(activity$date, is.na(activity$steps))
+```
+
+We can see that we have 288 measurements each day, since there are 12 x 5 minutes intervals in an hour and 288 x 5 minutes intervals in a day.  
+From a total of 61 days with steps measurements, we have data missing from 8 whole days. The other days have complete steps measurements.  
+The days that do not have measurements are:
+
+```{r}
+unique(activity[is.na(activity$steps),2])
+```
+
+
+### Analyzing data contents
+
+Let's take a look at the structure and the first few rows in the data loaded:
+
+```{r}
+str(activity)
+
+head(activity)
+```
+
+We notice that:
+
+- the **date** variable contains the data in character format
+
+- the **interval** variable contains numeric value representing the 5 minutes interval the number os steps taken was measured. 
+
+### Preprocessing the data
+
+In order to be able to work with date and time functions to aggregate and plot the data, a new variable, calles `datetime` will be created in the `activity` data frame with the date & time of each of the 5 minutes intervals, in the POSIXct format:
+
+```{r}
+activity$datetime<-as.POSIXct(strptime(paste(activity$date, formatC(activity$interval, width=4, flag="0")), "%Y-%m-%d %H%M"))
+```
 
 
 ## What is mean total number of steps taken per day?
 
+In order to answer this question, we will create a new variable, called `stepsperday`, with the sum of the number of steps taken each day, being careful to:  
+- Use the correct time zone (defult is UTC), and   
+- Keep missing values so we can compute the mean correctly with the `mean` function with the parameter `na.rm=TRUE`.  
+
+```{r}
+stepsperday<-aggregate(activity$steps, by=list(as.Date(activity$datetime, tz="")), FUN=sum, na.rm=F)
+
+names(stepsperday)<-c("Date", "Steps")
+
+stepsperday
+```
+
+So, the mean total number of steps taken per day is:
+
+```{r}
+mean(stepsperday$Steps, na.rm=TRUE)
+```
 
 
 ## What is the average daily activity pattern?

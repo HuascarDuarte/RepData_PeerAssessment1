@@ -37,7 +37,14 @@ print(h)
 mean(stepsperday$Steps, na.rm=T)
 median(stepsperday$Steps, na.rm=T)
 
-#
+## Average number of steps per interval
+Time<-as.POSIXct(strptime(formatC(activity$interval, width=4, flag="0"), 
+                          "%H%M"))
+
+stepsperinterval<-aggregate(activity$steps, by=list(Time), FUN=mean, 
+                            na.rm=TRUE)
+
+names(stepsperinterval)<-c("Time", "Steps")
 
 
 

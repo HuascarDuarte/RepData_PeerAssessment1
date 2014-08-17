@@ -22,12 +22,23 @@ activity$datetime<-as.POSIXct(
 ### NA is an "all day" thing and there are no missing values in a day with
 ### measurements
 
-stepsperday<-aggregate(activity$steps, by = list(activity$date), 
-                       FUN = sum, na.rm=F)
-names(stepsperday)[1]<-'date'
-names(stepsperday)[2]<-'steps'
-mean(stepsperday$steps, na.rm=T)
-median(stepsperday$steps, na.rm=T)
+stepsperday<-aggregate(activity$steps, 
+                       by=list(as.Date(activity$datetime, tz="")), 
+                       FUN=sum, na.rm=F)
+
+names(stepsperday)<-c("Date", "Steps")
+
+## Print a bar chart with the total steps taken each day
+library(ggplot2)
+h<-ggplot(stepsperday, aes(Date, Steps))+geom_bar(stat="identity")
+print(h)
+
+
+mean(stepsperday$Steps, na.rm=T)
+median(stepsperday$Steps, na.rm=T)
+
+#
+
 
 
 

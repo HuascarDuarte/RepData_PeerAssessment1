@@ -258,9 +258,45 @@ Median2
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-For this part of the assignment, we will use the dataset with the filled-in missing values to:
+For this part of the assignment, we will use the dataset with the filled-in missing values (`activity2`) to:
 
 1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
 
 2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
+### New variable
+
+We will create a factor variable called `weekday` in the `activity2` data set with the following code:
+
+```{r}
+## Variable with the day of the week
+activity2$dayoftheweek<-weekdays(activity2$datetime, abbreviate=TRUE)
+
+## Data frame with the day of the week and if it is a weekday or a weekend
+dayoftheweek<-c("Mon","Tue","Wed","Thu","Fri","Sat","Sun")
+weekday<-c("weekday","weekday","weekday","weekday","weekday","weekend","weekend")
+w<-as.data.frame(cbind(dayoftheweek, weekday))
+
+## Merge w to activity2 after fixing bug in R with 2012-10-21 datetime.
+activity2[is.na(activity2$dayoftheweek),]$dayoftheweek<-c("Sun") # bug fix
+activity2<-merge(activity2, w)
+```
+
+### Plot comparing average steps on weekdays and weekends
+
+Create an aggregate dataset from `activity2` with the mean of the number of steps by interval and by the factor weekday: 
+
+```{r}
+stepsperinterval2<-aggregate(activity2$steps, by=list(activity2$interval, activity2$weekday), FUN=mean, na.rm=TRUE) 
+names(stepsperinterval2)<-c("Interval", "weekday", "Steps")
+```
+
+Now let's plot this dataset:
+
+```{r fig.width=11}
+library(lattice)
+xyplot(Steps ~ Interval | weekday, data=stepsperinterval2, layout=c(1,2), type="l")
+```
+  
+  
+> **Apparently during the weekends more steps are taken after around 10 AM, while during week days there are more steps taken between 8AM and 10AM!** 
